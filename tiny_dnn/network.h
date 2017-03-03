@@ -419,6 +419,25 @@ class network {
   }
 
   /**
+   * test and generate confusion-matrix for classification in graph network 
+   * (i.e different arguments) 
+   */
+
+  result test(const std::vector<tensor_t> &in, const std::vector<tensor_t> &expected) {
+    result test_result;
+    set_netphase(net_phase::test);
+    for (size_t i = 0; i < in.size(); i++) {
+        const label_t predicted = fprop_max_index(in[i]);
+        const label_t actual    = max_index(expected[i][0]);
+
+        if (predicted == actual) test_result.num_success++;
+        test_result.num_total++;
+        test_result.confusion_matrix[predicted][actual]++; 
+    }
+    return test_result;
+  }
+
+  /**
    * generate output for each input
    **/
   std::vector<vec_t> test(const std::vector<vec_t> &in) {
@@ -740,6 +759,12 @@ class network {
   label_t fprop_max_index(const vec_t &in) {
     return label_t(max_index(fprop(in)));
   }
+
+  label_t fprop_max_index(const tensor_t &in) {
+    tensor_t pred = fprop(in);
+    return label_t(max_index(pred[0]));
+  }
+
 
  private:
   template <typename Layer>
